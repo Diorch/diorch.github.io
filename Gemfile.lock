@@ -26,6 +26,9 @@ GEM
       sass (~> 3.4)
     jekyll-watch (1.5.0)
       listen (~> 3.0, < 3.1)
+    just-the-docs (0.1.5)
+      jekyll (~> 3.3)
+      rake (~> 10.0)
     kramdown (1.13.2)
     liquid (3.0.6)
     listen (3.0.6)
@@ -38,6 +41,7 @@ GEM
     pathutil (0.14.0)
       forwardable-extended (~> 2.6)
     public_suffix (2.0.5)
+    rake (10.5.0)
     rb-fsevent (0.9.8)
     rb-inotify (0.9.8)
       ffi (>= 0.5.0)
@@ -56,8 +60,9 @@ DEPENDENCIES
   jekyll-gist
   jekyll-paginate
   jekyll-watch
+  just-the-docs
   kramdown
   rouge
 
 BUNDLED WITH
-   1.14.6
+   1.17.1
