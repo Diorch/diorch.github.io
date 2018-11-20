@@ -33,7 +33,7 @@ public class Person {
 
 Spring *null-safety*特性能够通过IDE向我们汇报警告。如，当我们使用Intellij IDEA，对*fullName*使用`NonNull`注解，我们能看到如下警告:
 
-![e1](pic/nonnul-annotation.png)
+![nonnull-annotation](https://github.com/Diorch/diorch.github.io/blob/master/pic/nonnul-annotation.png)
 
 有了这个提示，我们能及早注意到并采取一些手段避免在运行时发生故障。
 
