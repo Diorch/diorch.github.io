@@ -1,21 +1,21 @@
-## Managing Entities
+# Managing Entities
 
-#### The EntityManager Interface
+## The EntityManager Interface
 
-###### Container-Managed Entity Managers
+#### Container-Managed Entity Managers
 
-###### Application-Managed Entity Managers
+#### Application-Managed Entity Managers
 
-###### Finding Entities Using the EntityManager
+#### Finding Entities Using the EntityManager
 
-###### Managing an Entity Instance's Lifecycle
+#### Managing an Entity Instance's Lifecycle
 
-###### Persisting Entity Instances
+#### Persisting Entity Instances
 
-###### Removing Entity Instances
+#### Removing Entity Instances
 
-###### Synchronizing Entity Data to the Database
+#### Synchronizing Entity Data to the Database
 
 
 
-#### Persistence Units
+## Persistence Units
