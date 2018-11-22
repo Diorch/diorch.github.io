@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-11-16T03:03:10+08:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Diorch’s blog</title><subtitle>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.</subtitle><entry><title type="html">Introduction to Spliterator in Java</title><link href="http://localhost:4000/2018/11/14/Java8-Spliterator.html" rel="alternate" type="text/html" title="Introduction to Spliterator in Java" /><published>2018-11-14T00:00:00+08:00</published><updated>2018-11-14T00:00:00+08:00</updated><id>http://localhost:4000/2018/11/14/Java8%20Spliterator</id><content type="html" xml:base="http://localhost:4000/2018/11/14/Java8-Spliterator.html">&lt;h1 id=&quot;java8-spliterator&quot;&gt;Java8 Spliterator&lt;/h1&gt;
+
+&lt;h2 id=&quot;1-概览&quot;&gt;1. 概览&lt;/h2&gt;
+
+&lt;p&gt;Java8引进了&lt;strong&gt;Spliterator&lt;/strong&gt;接口，&lt;em&gt;用于队列的遍历和分区&lt;/em&gt;，是&lt;strong&gt;Stream&lt;/strong&gt;类的基础工具类，特别是在并行这方面。&lt;/p&gt;
+
+&lt;p&gt;本文涵盖了用途、特征、方法并举例如何实现一个自定义的&lt;strong&gt;Spliterator&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;h2 id=&quot;2-spliterator-api&quot;&gt;2. Spliterator API&lt;/h2&gt;
+
+&lt;h4 id=&quot;21-tryadvance&quot;&gt;2.1 tryAdvance&lt;/h4&gt;
+
+&lt;h4 id=&quot;22-trysplit&quot;&gt;2.2 trySplit&lt;/h4&gt;
+
+&lt;h4 id=&quot;23-estimatedsize&quot;&gt;2.3 estimatedSize&lt;/h4&gt;
+
+&lt;h4 id=&quot;24-hascharacteristics&quot;&gt;2.4 hasCharacteristics&lt;/h4&gt;
+
+&lt;h2 id=&quot;3-spliterator特征&quot;&gt;3. Spliterator特征&lt;/h2&gt;
+
+&lt;p&gt;JDK8 API定义了8种Spliterator的特性用于描述该对象。这些特性能为外部工具在使用Spliterator时提供便捷：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;SIZED&lt;/em&gt; - 能否够使用estimateSize（）方法返回确切数量的元素&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;SORTED&lt;/em&gt; - 是否迭代自排列有序的源&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;SUBSIZED&lt;/em&gt; - 通过&lt;em&gt;trySplit()&lt;/em&gt;方法获得的的&lt;strong&gt;Spliterators&lt;/strong&gt;是否&lt;em&gt;SIZED&lt;/em&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;CONCURRENT&lt;/em&gt; -&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;DISTINCT&lt;/em&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;IMMUTABLE&lt;/em&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;NONNULL&lt;/em&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;ORDERED&lt;/em&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;4-实现一个自己的spliterator&quot;&gt;4. 实现一个自己的Spliterator&lt;/h2&gt;
+
+&lt;h3 id=&quot;41场景&quot;&gt;4.1场景&lt;/h3&gt;
+
+&lt;p&gt;首先，我们假设存在如下场景：&lt;/p&gt;
+
+&lt;p&gt;我们有个&lt;code class=&quot;highlighter-rouge&quot;&gt;Article&lt;/code&gt;类，它有个&lt;code class=&quot;highlighter-rouge&quot;&gt;authors&lt;/code&gt;的域（一篇文章可能有多个作者 ），是一个&lt;code class=&quot;highlighter-rouge&quot;&gt;List&lt;/code&gt;。此外，建立一个简单的关系，&lt;code class=&quot;highlighter-rouge&quot;&gt;Author&lt;/code&gt;通过&lt;code class=&quot;highlighter-rouge&quot;&gt;relatedArticleId&lt;/code&gt;域映射&lt;code class=&quot;highlighter-rouge&quot;&gt;Article&lt;/code&gt;的&lt;code class=&quot;highlighter-rouge&quot;&gt;id&lt;/code&gt;关联&lt;code class=&quot;highlighter-rouge&quot;&gt;Article&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Author&lt;/code&gt; 如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Author&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;relatedArticleId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// standard getters, setters &amp;amp; constructors&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;该类在检索authors stream时统计作者个数，使用这个流完成一个推导过程。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;RelatedAuthorCounter&lt;/code&gt; 如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RelatedAuthorCounter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;counter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isRelated&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+ 
+    &lt;span class=&quot;c1&quot;&gt;// standard constructors/getters&lt;/span&gt;
+ 
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RelatedAuthorCounter&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;accumulate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Author&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;author&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;author&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getRelatedArticleId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isRelated&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RelatedAuthorCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;counter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isRelated&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RelatedAuthorCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RelatedAuthorCounter&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;combine&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RelatedAuthorCounter&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RelatedAuthorCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;RelatedAuthorCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+          &lt;span class=&quot;n&quot;&gt;counter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RelatedAuthorCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;counter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
+          &lt;span class=&quot;n&quot;&gt;RelatedAuthorCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;isRelated&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>baeldung</name></author><category term="Java8" /><category term="Stream" /><category term="翻译" /><summary type="html">Java8 Spliterator</summary></entry></feed>
