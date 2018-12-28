@@ -1,10 +1,10 @@
-# CountDownLatch
-
 [阅读原文](http://ifeve.com/countdownlatch%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/)
+
+
 
 相比`ReentranceLock`，`CountDownLatch`的流程还是相对比较简单的，`CountDownLatch`也是基于`AQS`，它是`AQS`的共享功能的一个实现。下面从源代码的实现上详解`CountDownLatch`。
 
-### 1. CountDownLatch 构造
+## 1. CountDownLatch 构造
 
 ```java
 public CountDownLatch(int count) {
@@ -26,7 +26,9 @@ private static final class Sync extends AbstractQueuedSynchronizer {
 }
 ```
 
-### 2. CountDownLatch.countDown()实现
+
+
+## 2. CountDownLatch.countDown()实现
 
 先看countDown所涉及的代码
 
@@ -110,7 +112,7 @@ private void unparkSuccessor(Node node) {
 
 
 
-### 3. CountDownLatch.await()实现
+## 3. CountDownLatch.await()实现
 
 ```java
 public void await() throws InterruptedException {

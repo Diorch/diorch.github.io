@@ -1,7 +1,6 @@
+[阅读原文](https://www.baeldung.com/spring-null-safety-annotations)
 
 
-from: https://www.baeldung.com/spring-null-safety-annotations
-by [Nguyen Nam Thai](https://www.baeldung.com/author/namthai-nguyen/)
 
 ## 1. 概览
 
